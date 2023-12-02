@@ -4,5 +4,5 @@ module s350f {
 	requires javafx.fxml;
 	requires jdk.jdi;
 	
-	opens application to javafx.graphics, javafx.fxml;
+	opens application to javafx.graphics, javafx.fxml, javafx.base;
 }
