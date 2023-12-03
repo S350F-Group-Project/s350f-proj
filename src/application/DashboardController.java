@@ -125,15 +125,14 @@ private void handleLoginButton(ActionEvent event) throws IOException {
         stage.setScene(new Scene(root));
         stage.setResizable(false);
         DashboardController dashboardController=loader.getController();
-       
+       	loggedInUser.setAll(username, password, name, role); 
+        stage.setUserData(loggedInUser);
+        System.out.println("Student object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
         
         stage.show();
            switch (role) {
            // Handle student login
                case "student":
-            	   loggedInUser.setAll(username, password, name, role); 
-                    stage.setUserData(loggedInUser);
-                    System.out.println("Student object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
                     loggedInUser.studentCourseDashboard(username, password, connection, coursePane, stage,loggedInUser);
                    break;
            // Handle teacher login
