@@ -38,9 +38,27 @@ For Windows:
 java --module-path "\path\to\javafx-sdk-21.0.1\lib" --add-modules javafx.controls,javafx.fxml -jar \path\to\350proj\app.jar 
 
 
+
 For Mac/Linux:
 
 java --module-path /path/to/javafx-sdk-21.0.1/lib --add-modules javafx.controls,javafx.fxml -jar /path/to/350proj/app.jar 
 
 
 ***Replace the paths with you own paths.***
+
+
+
+_________________________________________________________________________
+How to login?
+
+Login using username and password stored in database.
+
+Here is one example from each role:
+
+1.Student:
+username:s1289505      password:12895052
+2.Teacher:
+username:t7654321      password:AS8765432as
+3.Admin
+username:a1234567      password:12345678
+
