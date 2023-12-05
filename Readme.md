@@ -9,7 +9,7 @@ https://drive.google.com/file/d/1cVMPOvROvCHO-Aydoo52gYs_5MV4Z73g/view?usp=shari
 
 The app.exe is configured to use a bundled JRE and JavaFX sdk. Therefore, no need for further installation.
 
-(The file size of JRE is too large to be included in github and therefore this link is provided for your convenience)
+(The file size of JRE/JavaFX JDK is too large to be included in github and therefore this link is provided for your convenience)
 
 *Method 2:*
 
