@@ -6,7 +6,7 @@ Just download from this link, unzip then click app.exe:
 
 https://drive.google.com/file/d/1cVMPOvROvCHO-Aydoo52gYs_5MV4Z73g/view?usp=sharing
 
-
+The app.exe is configured to use a bundled JRE and JavaFX sdk. Therefore, no need for further installation.
 Method 2:
 
 Step 1:Download files from github
