@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="546.0" prefWidth="819.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.subController">
+   <center>
+      <TableView fx:id="tableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <columns>
+            <TableColumn fx:id="nameColumn" prefWidth="89.0" text="Name" />
+            <TableColumn fx:id="idColumn" prefWidth="92.0" text="Student ID" />
+            <TableColumn fx:id="submittedFileColumn" prefWidth="265.0" text="Submitted File" />
+            <TableColumn fx:id="submitDateColumn" minWidth="0.0" prefWidth="159.0" text="Submit Date" />
+            <TableColumn fx:id="statusColumn" prefWidth="126.0" text="Status" />
+            <TableColumn fx:id="gradeColumn" prefWidth="87.0" text="Grade" />
+         </columns>
+      </TableView>
+   </center>
+   <bottom>
+      <Button fx:id="gradeButton" mnemonicParsing="false" prefHeight="23.0" prefWidth="132.0" text="Grade Assignments" BorderPane.alignment="CENTER" />
+   </bottom>
+</BorderPane>

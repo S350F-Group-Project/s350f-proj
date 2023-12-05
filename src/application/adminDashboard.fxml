@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.effect.InnerShadow?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1024.0" style="-fx-background-color: E4E4E4;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.DashboardController">
+   <left>
+      <AnchorPane prefHeight="600.0" prefWidth="196.0" style="-fx-background-color: white; -fx-background-radius: 0px 50px 50px 0px;" BorderPane.alignment="CENTER">
+         <children>
+            <ImageView fitHeight="170.0" fitWidth="173.0" layoutX="9.0" layoutY="25.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@mulogo.png" />
+               </image>
+            </ImageView>
+            <Button fx:id="manageAccountsButton" layoutY="220.0" mnemonicParsing="false" onAction="#handleManageAccountsButton" prefHeight="35.0" prefWidth="196.0" style="-fx-background-color: E4E4E4;" text="Manage Accounts">
+               <font>
+                  <Font name="Avenir Heavy" size="18.0" />
+               </font>
+            </Button>
+            <Button fx:id="backupButton" layoutY="259.0" mnemonicParsing="false" onAction="#handleBackupButton" prefHeight="35.0" prefWidth="196.0" style="-fx-background-color: white;" text="Backup Database">
+               <font>
+                  <Font name="Avenir Heavy" size="18.0" />
+               </font>
+            </Button>
+            <Button fx:id="UpdatePersonalInfotButton" layoutY="298.0" mnemonicParsing="false" onAction="#handleUpdatePersonalInfotButton" prefHeight="35.0" prefWidth="196.0" style="-fx-background-color: white;" text="Update Personal Info">
+               <font>
+                  <Font size="17.0" />
+               </font>
+            </Button>
+            <Button fx:id="logoutbutton" layoutY="337.0" mnemonicParsing="false" onAction="#handleLogoutButton" prefHeight="35.0" prefWidth="196.0" style="-fx-background-color: white;" text="Logout">
+               <font>
+                  <Font name="Avenir Heavy" size="18.0" />
+               </font>
+            </Button>
+         </children>
+         <effect>
+            <InnerShadow />
+         </effect>
+      </AnchorPane>
+   </left>
+   <center>
+      <TableView fx:id="userTableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <columns>
+          <TableColumn fx:id="idCol" prefWidth="129.0" text="ID" />
+          <TableColumn fx:id="nameCol" prefWidth="191.0" text="Name" />
+            <TableColumn fx:id="unCol" prefWidth="213.0" text="Username" />
+            <TableColumn fx:id="pwCol" prefWidth="218.0" text="Password" />
+            <TableColumn fx:id="roleCol" prefWidth="76.0" text="Role" />
+        </columns>
+      </TableView>
+   </center>
+</BorderPane>
