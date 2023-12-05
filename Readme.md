@@ -30,7 +30,7 @@ java --module-path "\path\to\javafx-sdk-21.0.1\lib" --add-modules javafx.control
 
 For Mac/Linux:
 
-java --module-path "/path/to/javafx-sdk-21.0.1/lib" --add-modules javafx.controls,javafx.fxml -jar /path/to/350proj/app.jar 
+java --module-path /path/to/javafx-sdk-21.0.1/lib --add-modules javafx.controls,javafx.fxml -jar /path/to/350proj/app.jar 
 
 
 ***Replace the paths with you own paths.***
