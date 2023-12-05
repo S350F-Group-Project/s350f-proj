@@ -60,14 +60,15 @@ public class CourseBoardController {
         
         // Get the total number of weeks from the course table
         int totalWeeks = 14;
-
+        
         // Create tabs for each week
         for (int week = 1; week <= totalWeeks; week++) {
             Tab tab = new Tab("Week " + week);
 
             // Create a ListView to display filenames from the teachingmaterials table
             ListView<Hyperlink> listView = new ListView<>();
-            populateListView(listView, week,connection); // Populate the ListView with filenames for the specific week
+            populateListView(listView, week,connection); 
+            // Populate the ListView with filenames for the specific week
          
             VBox vbox = new VBox(listView);
             tab.setContent(vbox);
@@ -134,6 +135,7 @@ private void populateListView(ListView<Hyperlink> listView, int week,Connection 
                 // Add the Hyperlink to the ListView
                 listView.getItems().add(hyperlink);
             }
+      
             // Close the resources
             resultSet.close();
             statement.close();
@@ -159,6 +161,7 @@ private void populateAssignmentListView(ListView<Hyperlink> listView, Connection
             String filename = resultSet.getString("filename");
             Blob blob = resultSet.getBlob("files");
             String description = resultSet.getString("description");
+           
             
             String deadline = resultSet.getString("deadline");
             java.sql.Date compareDeadline = resultSet.getDate("deadline");
@@ -173,23 +176,26 @@ private void populateAssignmentListView(ListView<Hyperlink> listView, Connection
 					if(blob!=null) {
 					  fileData = blob.getBytes(1, (int) blob.length());
 					}
+				    String grade;
 				   	String status;
 					root = loader.load();
 					  Node node = (Node) event.getSource();
 			          Stage stage = (Stage) node.getScene().getWindow();
 			          user loggedInUser = (user) stage.getUserData();
-			          PreparedStatement ps2= connection.prepareStatement("SELECT STATUS from submittedAssignments WHERE username=? and title=? ");
+			          PreparedStatement ps2= connection.prepareStatement("SELECT STATUS, GRADE from submittedAssignments WHERE username=? and title=? ");
 			          ps2.setString(1, loggedInUser.username);
 			          ps2.setString(2, title);
 			          ResultSet rs2 =ps2.executeQuery();
 			          if(rs2.next()) {
 			        	  status=rs2.getString(1);
+			        	  grade= rs2.getString(2);
 			          }
 			          else {
 			        	  status="Not Submitted";
+			        	  grade=" Not Marked";
 			          }
 				      AssignmentPopupController AssignmentpopupController = loader.getController();
-		              AssignmentpopupController.setAssignmentDetails(title,description, status, deadline, filename);
+		              AssignmentpopupController.setAssignmentDetails(title,description, status, deadline, filename, grade);
 		              AssignmentpopupController.setFileData(fileData);
 		              AssignmentpopupController.setStatus(status);
 		              AssignmentpopupController.setCourseID(courseID);

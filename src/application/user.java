@@ -1,5 +1,6 @@
 package application;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -109,4 +110,110 @@ public class user{
                  }
                 }
               }
+    public void teacherCourseDashboard(String username, String password, Connection connection, GridPane coursePane, Stage stage, user loggedInUser) throws SQLException {
+        
+            PreparedStatement coursesStatement = connection.prepareStatement("SELECT * FROM COURSES WHERE TEACHERINCHARGE = ?");
+            coursesStatement.setString(1,loggedInUser.name);
+            ResultSet coursesResultSet = coursesStatement.executeQuery();
+
+            int row = 1;
+            // Display the student's courses in the grid pane
+
+            while (coursesResultSet.next()) {
+                String courseName = coursesResultSet.getString("COURSENAME");
+                String courseID = coursesResultSet.getString("COURSEID");
+                String course = "      " + courseID + "  " + courseName;
+
+                // Create a hyperlink for the course
+                Hyperlink courseLink = new Hyperlink(course);
+                courseLink.setFont(Font.font("Avenir Heavy", 20));
+
+                // Handle the hyperlink click event
+                courseLink.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                // Switch the scene to CourseBoard.fxml
+                try {
+                            
+                Node node = (Node) event.getSource();
+                Stage stage = (Stage) node.getScene().getWindow();
+          
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("teacherCourseBoard.fxml"));
+                Parent root = loader.load();
+            
+                teacherCourseBoardController tcbc = loader.getController();
+                tcbc.setConnection(connection); 
+                tcbc.setCourseID(courseID);
+                tcbc.initialize();
+     
+                Scene scene = new Scene(root);
+                stage.setScene(scene);
+                stage.setResizable(false);
+                stage.show();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                // Add the hyperlink to the grid pane
+                coursePane.add(courseLink, 0, row);
+                row++;
+           
+                 }
+                }
+    public void teacherAcademicRecord(String username, String password, Connection connection, GridPane coursePane, Stage stage, user loggedInUser) throws SQLException {
+        
+        PreparedStatement coursesStatement = connection.prepareStatement("SELECT * FROM COURSES WHERE TEACHERINCHARGE = ?");
+        coursesStatement.setString(1,loggedInUser.name);
+        ResultSet coursesResultSet = coursesStatement.executeQuery();
+
+        int row = 1;
+        // Display the student's courses in the grid pane
+
+        while (coursesResultSet.next()) {
+            String courseName = coursesResultSet.getString("COURSENAME");
+            String courseID = coursesResultSet.getString("COURSEID");
+            String course = "      " + courseID + "  " + courseName;
+
+            // Create a hyperlink for the course
+            Hyperlink courseLink = new Hyperlink(course);
+            courseLink.setFont(Font.font("Avenir Heavy", 20));
+
+            // Handle the hyperlink click event
+            courseLink.setOnAction(event -> {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("teacherAcademicRecord2.fxml"));
+                    Parent root = loader.load();
+                    teacherAcademicRecord2Controller academicRecord2Controller = loader.getController();
+
+                   
+                    try {
+						academicRecord2Controller.initialize(connection, courseID);
+					} catch (Exception e) {
+						
+						e.printStackTrace();
+					}
+
+                    // Switch the scene to teacherAcademicRecord2.fxml
+                    Scene scene = new Scene(root);
+                    stage.setScene(scene);
+                    stage.show();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            // Add the hyperlink to the grid pane
+            coursePane.add(courseLink, 0, row);
+            row++;
+       
+             }
             }
+ 
+            }
+           
+            
+            

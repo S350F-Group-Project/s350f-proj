@@ -2,19 +2,28 @@ package application;
 
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,12 +42,15 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import javafx.scene.control.TableColumn;
 
 public class DashboardController {
 @FXML
@@ -58,7 +70,7 @@ private Button mycoursebutton;
 @FXML
 private Button UpdatePersonalInfotButton;
 @FXML
-GridPane coursePane;
+public GridPane coursePane;
 @FXML
 private ImageView photoImageView;
 @FXML
@@ -73,21 +85,126 @@ private TextField emailTF;
 private TextField passwordTF;
 @FXML
 private TextField confirmPasswordTF;
-
+@FXML
+private Button backButton;
+@FXML
+private Button manageAccountsButton;
 @FXML
 private Button attachPhotoButton;
+@FXML
+private Button backupButton;
 @FXML
 private Button updateButton;
 public String role;
 Connection connection;
 public user loggedInUser = new user();
+@FXML
+private TableColumn<userModel, String> idCol;
+@FXML
+private TableColumn<userModel, String> nameCol;
+@FXML
+private TableColumn<userModel, String> unCol;
+@FXML
+private TableColumn<userModel, String> pwCol;
+@FXML
+private TableColumn<userModel, String> roleCol;
 
+@FXML
+TableView<userModel> userTableView;
 
 @FXML
 private void initialize() throws Exception {
     db db = new db();
     connection=db.getConnection();
 
+}
+
+
+private ObservableList<userModel> getUserList() throws SQLException {
+    ObservableList<userModel> userList = FXCollections.observableArrayList();
+
+       PreparedStatement ps = connection.prepareStatement("SELECT id, name, username, password, role FROM users");
+       ResultSet rs = ps.executeQuery();
+
+       while (rs.next()) {
+           String id = rs.getString("id");
+           String n = rs.getString("name");
+           String un = rs.getString("username");
+           String pw = rs.getString("password");
+           String role = rs.getString("role");
+
+           // Create a User object with the retrieved information
+           userModel user = new userModel(id, n, un, pw, role);
+           System.out.println(user);
+           // Add the User object to the TableView
+        userList.add(user);
+       }
+    return userList;
+}
+public void setupUserTableView() throws SQLException {
+    // Set up cell value factories for each column
+    idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
+    nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+    unCol.setCellValueFactory(new PropertyValueFactory<>("username"));
+    pwCol.setCellValueFactory(new PropertyValueFactory<>("password"));
+    pwCol.setCellFactory(TextFieldTableCell.forTableColumn());
+    pwCol.setOnEditCommit(event -> {
+        userModel user = event.getRowValue();
+        String newPassword = event.getNewValue();
+        boolean hasUppercase = !newPassword.equals(newPassword.toLowerCase());
+        boolean hasLowercase = !newPassword.equals(newPassword.toUpperCase());
+        boolean hasMinimumLength = newPassword.length() >= 10;
+        if (!(hasUppercase && hasLowercase && hasMinimumLength)) {
+            showAlert(AlertType.INFORMATION, "Error", "Password must contain at least one uppercase letter, one lowercase letter, and have a minimum length of 10 characters");
+            return;
+        }
+        user.setPassword(newPassword);
+        PreparedStatement statement;
+		try {
+			statement = connection.prepareStatement("UPDATE users set password = ? where username=?");
+			statement.setString(1, user.getPassword());
+			statement.setString(2, user.getUsername());
+	
+			ResultSet resultSet = statement.executeQuery();  
+			 showAlert(AlertType.INFORMATION, "Success", "password updated successfully");
+		} catch (SQLException e) {
+		
+			e.printStackTrace();
+		}
+   
+    });
+    roleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
+    roleCol.setCellFactory(TextFieldTableCell.forTableColumn());
+    roleCol.setOnEditCommit(event -> {
+        userModel user = event.getRowValue();
+        String newRole = event.getNewValue();
+        
+        if(!(newRole.equalsIgnoreCase("student") || newRole.equalsIgnoreCase("teacher") || newRole.equalsIgnoreCase("admin"))) {
+        	showAlert(AlertType.INFORMATION, "Error", "Valid roles are 'student', 'teacher', and 'admin'");
+            return;
+        }
+        user.setRole(newRole);
+        PreparedStatement statement;
+		try {
+			statement = connection.prepareStatement("UPDATE users set role = ? where username=?");
+			statement.setString(1, user.getRole());
+			statement.setString(2, user.getUsername());
+	
+			ResultSet resultSet = statement.executeQuery();  
+			 showAlert(AlertType.INFORMATION, "Success", "role updated successfully");
+		} catch (SQLException e) {
+		
+			e.printStackTrace();
+		}
+        
+        
+    });
+
+    // Enable editing for the table
+    userTableView.setEditable(true);
+
+
+    userTableView.setItems(getUserList());
 }
 @FXML
 private void handleLoginButton(ActionEvent event) throws IOException {
@@ -116,32 +233,55 @@ private void handleLoginButton(ActionEvent event) throws IOException {
         Stage stage = (Stage) node.getScene().getWindow();
         stage.close();
           
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("dashboard.fxml"));
-         
-        Parent root = loader.load();
-        coursePane = (GridPane) loader.getNamespace().get("coursePane");
-        
-        stage.setTitle("Dashboard");
-        stage.setScene(new Scene(root));
-        stage.setResizable(false);
-        DashboardController dashboardController=loader.getController();
-       	loggedInUser.setAll(username, password, name, role); 
-        stage.setUserData(loggedInUser);
-        System.out.println("Student object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
-        
-        stage.show();
            switch (role) {
            // Handle student login
                case "student":
-                    loggedInUser.studentCourseDashboard(username, password, connection, coursePane, stage,loggedInUser);
+            	   FXMLLoader studentLoader = new FXMLLoader(getClass().getResource("Dashboard.fxml"));
+                   Parent studentRoot = studentLoader.load();
+                   stage.setTitle("Student Dashboard");
+                   stage.setScene(new Scene(studentRoot));
+                   stage.setResizable(false);
+                   DashboardController studentController = studentLoader.getController();
+                   loggedInUser.setAll(username, password, name, role);
+                   stage.setUserData(loggedInUser);
+                   loggedInUser.studentCourseDashboard(username, password, connection, studentController.coursePane, stage, loggedInUser);
+                   System.out.println("Student object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
+
+                   stage.show();
                    break;
+                   
            // Handle teacher login
                case "teacher":
-                   
+            	   FXMLLoader teacherLoader = new FXMLLoader(getClass().getResource("teacherDashboard.fxml"));
+                   Parent teacherRoot = teacherLoader.load();
+                   stage.setTitle("Teacher Dashboard");
+                   stage.setScene(new Scene(teacherRoot));
+                   stage.setResizable(false);
+                   DashboardController teacherController = teacherLoader.getController();
+                   loggedInUser.setAll(username, password, name, role);
+                   stage.setUserData(loggedInUser);
+                   loggedInUser.teacherCourseDashboard(username, password, connection, teacherController.coursePane, stage, loggedInUser);
+                   System.out.println("Teacher object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
+
+                   stage.show();
+            	   
                    break;
+                   
            // Handle admin login
                case "admin":
-                   
+            	   FXMLLoader adminLoader = new FXMLLoader(getClass().getResource("adminDashboard.fxml"));
+            	    Parent adminRoot = adminLoader.load();
+            	    stage.setTitle("Admin Dashboard");
+            	    stage.setScene(new Scene(adminRoot));
+            	    stage.setResizable(false);
+            	    DashboardController adminController = adminLoader.getController();
+            	    loggedInUser.setAll(username, password, name, role);
+            	    stage.setUserData(loggedInUser);
+            	    // Set up the TableView columns and data
+            	    adminController.setupUserTableView();
+
+            	    System.out.println("Admin object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
+            	    stage.show();
                    break;
                default:
                    break;
@@ -158,6 +298,103 @@ private void handleLoginButton(ActionEvent event) throws IOException {
     showAlert(AlertType.ERROR, "Database Error", "Failed to query the database.");
 }
 }
+@FXML
+private void handleManageAccountsButton(ActionEvent event) throws SQLException, IOException {
+	    FXMLLoader adminLoader = new FXMLLoader(getClass().getResource("adminDashboard.fxml"));
+	 	Node node = (Node) event.getSource();
+	 
+	 	Stage stage = (Stage) node.getScene().getWindow();
+	    Parent adminRoot = adminLoader.load();
+	    stage.setTitle("Admin Dashboard");
+	    stage.setScene(new Scene(adminRoot));
+	    stage.setResizable(false);
+	    DashboardController adminController = adminLoader.getController();
+	    user loggedInUser = (user) stage.getUserData();
+	
+	    // Set up the TableView columns and data
+	    adminController.setupUserTableView();
+
+	    System.out.println("Admin object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
+	    stage.show();
+}
+
+@FXML
+private void handleBackupButton() {
+    List<String> tableNames = new ArrayList<>();
+    tableNames.add("ACADEMICRECORDS");
+    tableNames.add("ASSIGNMENTS");
+    tableNames.add("COURSES");
+    tableNames.add("PROGRAMS");
+    tableNames.add("SUBMITTEDASSIGNMENTS");
+    tableNames.add("TEACHINGMATERIALS");
+    tableNames.add("USERS");
+
+    try {
+        // Choose the directory to save the backup file
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File selectedDirectory = directoryChooser.showDialog(new Stage());
+
+        if (selectedDirectory != null) {
+            // Create the backup file
+            String backupFileName = "backup.sql";
+            File backupFile = new File(selectedDirectory.getPath(), backupFileName);
+
+            // Check if the backup file already exists
+            int counter = 1;
+            while (backupFile.exists()) {
+                backupFileName = "backup(" + counter + ").sql";
+                backupFile = new File(selectedDirectory.getPath(), backupFileName);
+                counter++;
+            }
+
+            FileWriter writer = new FileWriter(backupFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+
+            // Export each table as SQL statements
+            for (String tableName : tableNames) {
+                String query = "SELECT * FROM " + tableName;
+                Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(query);
+
+                // Write SQL statements to the backup file
+                while (resultSet.next()) {
+                    StringBuilder insertStatement = new StringBuilder();
+                    insertStatement.append("INSERT INTO ");
+                    insertStatement.append(tableName);
+                    insertStatement.append(" VALUES (");
+
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+
+                    for (int i = 1; i <= columnCount; i++) {
+                        Object value = resultSet.getObject(i);
+                        insertStatement.append(value);
+
+                        if (i != columnCount) {
+                            insertStatement.append(", ");
+                        }
+                    }
+
+                    insertStatement.append(");");
+                    bufferedWriter.write(insertStatement.toString());
+                    bufferedWriter.newLine();
+                }
+
+                resultSet.close();
+                statement.close();
+            }
+
+            bufferedWriter.close();
+            writer.close();
+
+            System.out.println("Backup created successfully.");
+            showAlert(AlertType.INFORMATION, "Success", "Backup successful.");
+        }
+    } catch (IOException | SQLException e) {
+        e.printStackTrace();
+    }
+}
+
 @FXML
 private void handleLogoutButton() throws IOException {
         // Load the login scene
@@ -188,7 +425,9 @@ private void handleAcademicRecordsButton(ActionEvent event) throws IOException, 
         Node node = (Node) event.getSource();
         Stage stage = (Stage) node.getScene().getWindow();
         user loggedInUser = (user) stage.getUserData();
-
+        
+        
+        if(loggedInUser.role.equalsIgnoreCase("student")) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("AcademicRecords.fxml"));
         Parent root = loader.load();
         TableView<AcademicRecord> recordTableView = (TableView<AcademicRecord>) root.lookup("#recordTableView");
@@ -261,12 +500,26 @@ private void handleAcademicRecordsButton(ActionEvent event) throws IOException, 
         
         stage.show();
         System.out.println("Switch to AcademicRecords");
+        }else if(loggedInUser.role.equalsIgnoreCase("teacher")) {
+        	
+        	 FXMLLoader loader = new FXMLLoader(getClass().getResource("teacherAcademicRecords.fxml"));
+             Parent root = loader.load();
+             Scene scene = new Scene(root);
+             DashboardController teacherController=loader.getController();
+             
+             loggedInUser.teacherAcademicRecord(loggedInUser.username, loggedInUser.password, connection, teacherController.coursePane, stage, loggedInUser);
+             stage.setResizable(false);
+             stage.setScene(scene);
+             stage.show();
+        }
 }
 @FXML
 private void handleUpdatePersonalInfotButton(ActionEvent event) throws IOException, SQLException {
-	 	Node node = (Node) event.getSource();
-	 	Stage stage = (Stage) node.getScene().getWindow();
-	 	user loggedInUser = (user) stage.getUserData();
+	Node node = (Node) event.getSource();
+ 	Stage stage = (Stage) node.getScene().getWindow();
+ 	user loggedInUser = (user) stage.getUserData();
+	if(loggedInUser.role.equalsIgnoreCase("student")||loggedInUser.role.equalsIgnoreCase("teacher")) {
+	 	
         FXMLLoader loader = new FXMLLoader(getClass().getResource("updatePersonalInfo.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
@@ -312,62 +565,123 @@ private void handleUpdatePersonalInfotButton(ActionEvent event) throws IOExcepti
         currentStage.setResizable(false);
         currentStage.show();
         System.out.println("Switch to UpdatePersonalInfo");
+	}else if(loggedInUser.role.equalsIgnoreCase("admin")) {
+		
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("adminUpdatePersonalInfo.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+    
+        // Get the stage of the current scene
+        Stage currentStage = (Stage) logoutbutton.getScene().getWindow();
+        // Set the new scene on the stage
+        currentStage.setScene(scene);
+        DashboardController dashboardController=loader.getController();
+        
+        PreparedStatement ps = connection.prepareStatement("Select NAME,IMAGE,EMAIL,PHONENUMBER,USERNAME,PASSWORD FROM users where username=?");
+        
+        ps.setString(1, loggedInUser.username);
+        
+        ResultSet rs =ps.executeQuery();
+        rs.next();
+        	String name=rs.getString(1);
+        	String email=rs.getString(3);
+        	String phoneNumber=rs.getString(4);
+        	String username=rs.getString(5);
+        	String password=rs.getString(6);
+        	Blob image=rs.getBlob(2);
+   
+  
+        	dashboardController.nameLab.setText(name);
+        	
+        	if(email!=null) {
+        		dashboardController.emailTF.setText(email);
+        	}
+        	if(phoneNumber!=null) {
+        		dashboardController.phoneNumTF.setText(phoneNumber);
+        	}
+        	dashboardController.usernameLabel.setText(username);
+        	
+        	if (image != null) {
+        	    try (InputStream inputStream = image.getBinaryStream()) {
+        	        Image img = new Image(inputStream);
+        	        dashboardController.photoImageView.setImage(img);
+        	    } catch (IOException e) {
+        	        e.printStackTrace();
+        	    }
+        	}
+        currentStage.setResizable(false);
+        currentStage.show();
+        System.out.println("Switch to UpdatePersonalInfo");
+	}
 }
 
 @FXML
 private void handleAttachPhotoButton(ActionEvent event) {
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle("Select Photo");
-    // Set the file extension filters if necessary
+
      fileChooser.getExtensionFilters().add(new ExtensionFilter("Image Files", "*.jpg", "*.png"));
     
-    // Show the file chooser dialog
+
     File selectedFile = fileChooser.showOpenDialog(null);
     
     if (selectedFile != null) {
-        // Create an Image object from the selected file
+
         Image image = new Image(selectedFile.toURI().toString());
-        
-        // Set the Image as the content of the ImageView
-       
+ 
         this.photoImageView.setImage(image);
         showAlert(AlertType.INFORMATION, "Success", "Attached photo.");
     }
 }
-
 @FXML
 private void handleUpdateButton(ActionEvent event) throws SQLException {
-    // Retrieve the modified values from the UI components
-	String username=this.usernameLabel.getText();
+
+    String username = this.usernameLabel.getText();
     String newPhoneNumber = this.phoneNumTF.getText();
     if (newPhoneNumber.length() != 8) {
         showAlert(AlertType.INFORMATION, "Error", "Phone Number must have exactly 8 characters");
-        return; }
-    
+        return;
+    }
+
     String newEmail = this.emailTF.getText();
     if (!newEmail.contains("@")) {
         showAlert(AlertType.INFORMATION, "Error", "Invalid Email format");
         return;
     }
-   
-    String confirmPassword=this.confirmPasswordTF.getText();
-    String newPassword=this.passwordTF.getText();
-    System.out.println(confirmPassword+newPassword);
-    if(!(newPassword.equals(confirmPassword))) {
-    	showAlert(AlertType.INFORMATION, "Error", "New Password not equal to Confirm Password ");
-    	return;
-    	
+
+    String confirmPassword = this.confirmPasswordTF.getText();
+    String newPassword = this.passwordTF.getText();
+
+    // Check if both new password and confirm password fields are empty
+    boolean isPasswordEmpty = newPassword.isEmpty() && confirmPassword.isEmpty();
+
+    // If any of the password fields are non-empty, perform validation checks
+    if (!isPasswordEmpty) {
+        // Check if new password matches confirm password
+        if (!newPassword.equals(confirmPassword)) {
+            showAlert(AlertType.INFORMATION, "Error", "New Password does not match Confirm Password");
+            return;
+        }
+
+        // Check if new password is equal to the old password
+        PreparedStatement ps = connection.prepareStatement("SELECT password FROM users WHERE username=?");
+        ps.setString(1, username);
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        String oldPassword = rs.getString(1);
+        if (newPassword.equals(oldPassword)) {
+            showAlert(AlertType.INFORMATION, "Error", "New password cannot be equal to your old password");
+            return;
+        }
+        boolean hasUppercase = !newPassword.equals(newPassword.toLowerCase());
+        boolean hasLowercase = !newPassword.equals(newPassword.toUpperCase());
+        boolean hasMinimumLength = newPassword.length() >= 10;
+        if (!(hasUppercase && hasLowercase && hasMinimumLength)) {
+            showAlert(AlertType.INFORMATION, "Error", "Password must contain at least one uppercase letter, one lowercase letter, and have a minimum length of 10 characters");
+            return;
+        }
     }
-    
-    PreparedStatement ps=connection.prepareStatement("Select password from users where username=?");
-    ps.setString(1,username);
-    ResultSet rs= ps.executeQuery();
-    rs.next();
-    String oldPassword= rs.getString(1);
-    if(newPassword.equals(oldPassword)){
-    	showAlert(AlertType.INFORMATION, "Error", "New password can not be equal to your old passwprd ");
-    	return;
-    }
+
     // Get the image from the ImageView
     Image newImage = this.photoImageView.getImage();
     // Convert the Image to a byte array
@@ -379,26 +693,31 @@ private void handleUpdateButton(ActionEvent event) throws SQLException {
     } catch (IOException e) {
         e.printStackTrace();
     }
-    
-    // Update the database records with the modified values
-    PreparedStatement ps2 = connection.prepareStatement("UPDATE users SET  IMAGE=?, EMAIL=?, PHONENUMBER=?, PASSWORD=? where username=?");
-   
+
+    String updateQuery = "UPDATE users SET IMAGE=?, EMAIL=?, PHONENUMBER=?";
+    if (!isPasswordEmpty) {
+        updateQuery += ", PASSWORD=?";
+    }
+    updateQuery += " WHERE username=?";
+    PreparedStatement ps2 = connection.prepareStatement(updateQuery);
     ps2.setBytes(1, imageBytes);
     ps2.setString(2, newEmail);
     ps2.setString(3, newPhoneNumber);
-    ps2.setString(4, newPassword);
-    ps2.setString(5, username);
+    if (!isPasswordEmpty) {
+        ps2.setString(4, newPassword);
+        ps2.setString(5, username);
+    } else {
+        ps2.setString(4, username);
+    }
     ps2.executeUpdate();
-    
+
     // Show a success message or perform any other necessary actions
-    
     showAlert(AlertType.INFORMATION, "Success", "Updated Personal Info successfully.");
     Node node = (Node) event.getSource();
     Stage stage = (Stage) node.getScene().getWindow();
     user loggedInUser = (user) stage.getUserData();
     loggedInUser.setPassword(newPassword);
     stage.setUserData(loggedInUser);
-    
 }
 
 
@@ -413,16 +732,28 @@ private void handleMyCourseButton(ActionEvent event) throws IOException, SQLExce
                 Parent root = loader.load();
                 coursePane = (GridPane) loader.getNamespace().get("coursePane");
                 Scene scene = new Scene(root);
-                // Get the stage of the current scene
+           
                 
                 DashboardController dashboardController=loader.getController();
                 
                 stage.setScene(scene);
                 stage.setResizable(false);
                 stage.show();
+                switch(loggedInUser.role) {
+                case"student":
+                	loggedInUser.studentCourseDashboard(loggedInUser.getUsername(), loggedInUser.getPassword(), connection, coursePane, stage,loggedInUser);
+                    System.out.println("back to my course with Student object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
+                	break;
+                case "teacher":
+                	loggedInUser.teacherCourseDashboard(loggedInUser.getUsername(), loggedInUser.getPassword(), connection, coursePane, stage,loggedInUser);
+                    System.out.println("Teacher object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
 
-                loggedInUser.studentCourseDashboard(loggedInUser.getUsername(), loggedInUser.getPassword(), connection, coursePane, stage,loggedInUser);
-       System.out.println("back to my course with Student object: " + "Username= " + loggedInUser.getUsername() + " Password= " + loggedInUser.getPassword() + " Name= " + loggedInUser.getName() + " Role= " + loggedInUser.getRole());
+                    break;
+                case"admin":
+                    break;
+                
+                }
+                
 
 }
 

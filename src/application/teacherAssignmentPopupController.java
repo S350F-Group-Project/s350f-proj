@@ -11,10 +11,14 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.sql.Timestamp;
 
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -23,15 +27,12 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-public class AssignmentPopupController {
-	@FXML
-	private Label gradeLab;
+public class teacherAssignmentPopupController {
+
 	@FXML
     private Label titleLabel;
     @FXML
     private TextArea descriptionLabel;
-    @FXML
-    private Label statusLabel;
     @FXML
     private Label deadlineLabel;
     @FXML
@@ -39,27 +40,28 @@ public class AssignmentPopupController {
     @FXML
     private Button attachFileButton;
     @FXML
-    private Button confirmSubmitButton;
-  
-    
-    private File selectedFile;
+    private Button studentSubButton;
+
     private String filename;
     private byte[] fileData;
     private byte[] attachedFileData;
-    private String courseID;
-    private String username;
+    public String courseID;
+    public String fileNumber;
     private String title;
-    private String status;
-    java.sql.Date comparedeadline;
+   
     private Connection connection;
+    
+    
+    @FXML
+    private void initialize() {
+    
+    }
     
     public void setAssignmentDetails(String title,String description, String status, String deadline, String filename, String grade) {
     	titleLabel.setText(title);
         descriptionLabel.setText(description);
-        statusLabel.setText(status);
         deadlineLabel.setText(deadline);
         downloadLink.setText(filename);
-        gradeLab.setText(grade);
         this.filename = filename;
     }
 
@@ -69,21 +71,21 @@ public class AssignmentPopupController {
             System.out.println("No file data available to download.");
             return;
         }
+        
 
-        // Open a directory chooser dialog to select the download location
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Download Location");
         Stage stage = (Stage) downloadLink.getScene().getWindow();
         File selectedDirectory = directoryChooser.showDialog(stage);
 
         if (selectedDirectory != null) {
-            // Create the file path for the downloaded file
+   
             String filePath = selectedDirectory.getAbsolutePath() + File.separator + filename;
 
             File destinationFile = new File(filePath);
             int counter = 1;
             while (destinationFile.exists()) {
-                // Append a counter to the file name to avoid overwriting
+          
                 String fileNameWithCounter = getFileNameWithCounter(filename, counter);
                 filePath = selectedDirectory.getAbsolutePath() + File.separator + fileNameWithCounter;
                 destinationFile = new File(filePath);
@@ -91,7 +93,7 @@ public class AssignmentPopupController {
             }
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
-                // Write the file data to the output stream
+          
                 fileOutputStream.write(fileData);
 
                 System.out.println("File downloaded successfully to: " + filePath);
@@ -101,84 +103,24 @@ public class AssignmentPopupController {
         }
     }
     @FXML
-    private void handleAttachFile(ActionEvent event) {
-        FileChooser fileChooser = new FileChooser();
-        selectedFile = fileChooser.showOpenDialog(null);
-        if (selectedFile != null) {
-        	  try {
-				attachedFileData = Files.readAllBytes(selectedFile.toPath());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+    private void handlestudentSubButton() throws IOException {
+        System.out.println(fileNumber + " " + courseID+" "+title);
 
-              String fileName = selectedFile.getName();
-              System.out.println("Selected File: " + fileName);
-              showAlert(AlertType.INFORMATION, "Success", "File attached successfully.");
-        }
-    }
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("submission.fxml"));
+        Parent root = loader.load();
+
+        Scene scene = new Scene(root);
+        Stage popupStage = new Stage();
+        popupStage.setScene(scene);
+        popupStage.setResizable(false);
+        popupStage.show();
+
+        subController subController = loader.getController();
    
-    @FXML
-    private void handleConfirmSubmission(ActionEvent event) throws SQLException {
-        if (selectedFile == null) {
-            System.out.println("No file selected.");
-            showAlert(AlertType.ERROR, "Error", "No file selected.");
-            return;
-        }
-        PreparedStatement psmt= connection.prepareStatement("Select * from submittedassignments where title=? and username=? and courseID=?");
-        psmt.setString(1,title);
-        psmt.setString(2,username);
-        psmt.setString(3,courseID);
-        ResultSet result = psmt.executeQuery();
-        if(result.next()) {
-        	System.out.println("Re-submission is not allowed");
-        	showAlert(AlertType.ERROR, "Error", "Re-submission is not allowed");
-        	return;
-        }
-        // Generate the submit date as a Timestamp
-        Timestamp submitDate = new Timestamp(System.currentTimeMillis());
-
-        // Convert the deadlineDate to a LocalDateTime
-        LocalDateTime deadlineDateTime = comparedeadline.toLocalDate().atStartOfDay();
-        Timestamp deadlineTimestamp = Timestamp.valueOf(deadlineDateTime);
-
-        // Compare the submit date with the deadline date
-        int comparisonResult = submitDate.compareTo(deadlineTimestamp);
-
-        if (comparisonResult > 0) {
-            // Handle late submission
-            System.out.println("Late Submission");
-            // Set the status accordingly
-            status = "Late Submission";
-        } else {
-            // Handle on-time submission
-            System.out.println("On-time Submission");
-            // Set the status accordingly
-            status = "Submitted";
-        }
-        try {
-            String insertStatement = "INSERT INTO submittedassignments (FILES, FILENAME, COURSEID, USERNAME, SUBMITDATE, TITLE,STATUS) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement ps = connection.prepareStatement(insertStatement);
-            ps.setBytes(1, attachedFileData);
-            ps.setString(2, selectedFile.getName());
-            ps.setString(3, courseID);
-            ps.setString(4, username);
-            ps.setTimestamp(5, submitDate);
-            ps.setString(6, title);
-            ps.setString(7, status); 
-          
-            ps.executeUpdate();
-
-            System.out.println("Submission recorded successfully.");
-            showAlert(AlertType.INFORMATION, "Success", "Submission recorded successfully.");
-            statusLabel.setText(status);
-            // Display a success message to the user or perform any additional operations
-
-        } catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
+        subController.setCourseID(courseID);
+        subController.setFileNumber(fileNumber);
+        subController.init(courseID,fileNumber, title);
     }
-
     private String getFileNameWithCounter(String filename, int counter) {
         int dotIndex = filename.lastIndexOf(".");
         if (dotIndex == -1) {
@@ -199,21 +141,17 @@ public class AssignmentPopupController {
     public void setCourseID(String courseID) {
         this.courseID = courseID;
     }
-    public void setUsername(String username) {
-        this.username = username;
-    }
+
     public void setConnection(Connection connection) {
         this.connection = connection;
     }
     public void setTitle(String title) {
         this.title = title;
     }
-    public void setStatus(String status) {
-        this.status = status;
+    public void setFileNumber(String fileNumber) {
+        this.fileNumber = fileNumber;
     }
-    public void setDeadlineDate(java.sql.Date comparedeadline) {
-        this.comparedeadline = comparedeadline;
-    }
+  
     
     private void showAlert(AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);

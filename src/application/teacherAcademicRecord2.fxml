@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.effect.InnerShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1024.0" style="-fx-background-color: E4E4E4;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.teacherAcademicRecord2Controller">
+   <center>
+      <GridPane alignment="CENTER" prefHeight="600.0" prefWidth="950.0" style="-fx-alignment: center;">
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="269.8036193847656" minWidth="0.0" prefWidth="13.196380615234375" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="804.1382446289062" minWidth="10.0" prefWidth="776.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="175.60723876953125" minWidth="0.0" prefWidth="38.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+         </rowConstraints>
+         <children>
+            <GridPane fx:id="coursePane" alignment="CENTER" prefHeight="600.0" prefWidth="963.0" style="-fx-background-color: white; -fx-background-radius: 100px 100px 100px 100px; -fx-alignment: center;" GridPane.columnSpan="2147483647" GridPane.rowSpan="2147483647">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="271.0" minWidth="0.0" prefWidth="75.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="841.0" minWidth="10.0" prefWidth="841.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="183.0" minWidth="0.0" prefWidth="85.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints maxHeight="194.0" minHeight="0.0" prefHeight="55.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="530.0" minHeight="10.0" prefHeight="466.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="72.0" minHeight="10.0" prefHeight="72.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <effect>
+                  <InnerShadow />
+               </effect>
+               <children>
+                  <ListView fx:id="studentListView" prefHeight="469.0" prefWidth="755.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Button fx:id="backButton" mnemonicParsing="false" prefHeight="26.0" prefWidth="79.0" text="Back" GridPane.columnIndex="1">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Button>
+               </children>
+            </GridPane>
+         </children>
+      </GridPane>
+   </center>
+</BorderPane>
