@@ -58,7 +58,7 @@ Here is one example from each role:
 1.Student:
 username:s1289505      password:12895052
 2.Teacher:
-username:t7654321      password:87654321
+username:t8765432      password:87654321
 3.Admin
 username:a1234567      password:12345678
 
