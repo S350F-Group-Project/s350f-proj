@@ -377,7 +377,7 @@ private void populateAssignmentListView(ListView<HBox> listView, Connection conn
 }
 private void handleNewAssignmentButton() throws Exception {
 	try {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("CreateNewAssignment.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("createNewAssignment.fxml"));
         Parent root = loader.load();
 
         // Create a new stage for the popup window
