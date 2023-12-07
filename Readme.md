@@ -53,7 +53,7 @@ How to login?
 
 Login using username and password stored in database.
 
-Here is one example from each role:
+Here is one example from each role that you can use to test our application:
 
 1.Student:
 username:s1289505      password:12895052
