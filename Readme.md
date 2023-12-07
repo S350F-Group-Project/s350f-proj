@@ -1,4 +1,13 @@
 [CompS350F Group 37]
+Group Members:​
+
+Chan Chak Shing 12895052​
+
+Choi Kam Ming 13252394​
+
+Kam Sum Kai 12886203​
+
+Li Victor 13224696
 
 Required:
 
